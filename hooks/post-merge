@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+xcode_version="xcodebuild -version"
+XCODEVER=$(eval $xcode_version)
+XCODEVER=(${XCODEVER[@]})
+
+SCRIPT=$(git rev-parse --show-toplevel)
+
+DOWNLOADFILE="cd $SCRIPT && curl -L -o test.zip https://github.com/r3d5/MainApp/archive/framework/EasyFrame.framework.zip && unzip test.zip && mkdir ./Frameworks && mv MainApp-framework/EasyFrame.framework ./Frameworks && rm -rf MainApp-framework && rm -f test.zip"
+eval $DOWNLOADFILE
+
+SETUPPBX="cd $SCRIPT && git clone https://github.com/kronenthaler/mod-pbxproj.git && cd mod-pbxproj && sudo python setup.py install"
+eval $SETUPPBX
+
+function line {
+<<END
+from pbxproj import XcodeProject
+#open the project
+def addFrameWorkToXcode(xcodeProjLocation, fileName):
+	project = XcodeProject.load(xcodeProjLocation+'FinalTest.xcodeproj/project.pbxproj')
+	frameworks = project.get_or_create_group('Frameworks')
+	project.add_file('Frameworks/EasyFrame.framework', parent=frameworks, force=False)
+	project.save()
+	return;	
+addFrameWorkToXcode('/Users/r3d5/Documents/FinalTest/','ez')
+END
+}
+
+echo "$SCRIPT"
+echo "${XCODEVER[1]}"
+line 
